@@ -15,7 +15,7 @@ module.exports = {
         massage = response.RESPONSE_ERROR;
         data = err;
       });
-    res.json(response.set(code, massage, data));
+    res.status(code).json(response.set(code, massage, data));
   },
   createLinkData: async (req, res) => {
     const valid = linkModel.find({
@@ -45,8 +45,27 @@ module.exports = {
     } else {
       code = response.CODE_UNAUTHORIZED;
       massage = response.RESPONSE_ERROR;
-      data = "Your link has shorter";
+      data = "Your link has shorter link";
     }
-    res.json(response.set(code, massage, data));
+    res.status(code).json(response.set(code, massage, data));
+  },
+  deleteLinkData: async (req, res) => {
+    let short_link = req.query.short_link;
+    let full_link = req.query.full_link;
+    linkModel
+      .findOneAndDelete({
+        $or: [{ short_link: short_link }, { full_link: full_link }],
+      })
+      .then((datas) => {
+        code = response.CODE_SUCCESS;
+        massage = "Link has deleted";
+        data = [];
+      })
+      .catch((err) => {
+        code = response.CODE_ERROR;
+        massage = "your link is unknown";
+        data = err;
+      });
+    res.status(code).json(response.set(code, massage, data));
   },
 };

@@ -1,22 +1,16 @@
 const express = require("express");
 const app = express();
+const bodyparse = require("body-parser");
 const mongoose = require("./config/db.js");
-const Mongoose = require("mongoose");
 const dotenv = require("dotenv/config");
+const shorterRoute = require("./router/shorterRouter.js");
 
-// Mongoose.connect(process.env.DB_HOST, {
-//   useNewUrlParser: true,
-// })
-//   .then(() => {
-//     console.log("connected");
-//   })
-//   .catch((err) => {
-//     console.log(err);
-//   });
-
+app.use(bodyparse.json());
 app.get("/", (req, res) => {
   res.send("Shorter Link");
 });
+//for handle shorter process
+app.use("/shorter", shorterRoute);
 
 app.listen(process.env.PORT_RUN || 3000, () => {
   console.log(

@@ -86,4 +86,7 @@ module.exports = {
     }
     res.status(code).json(response.set(code, massage, data));
   },
+  updateLinkData: async (req, res) => {
+    linkModel.updateOne();
+  },
 };

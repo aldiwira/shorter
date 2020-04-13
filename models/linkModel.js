@@ -13,6 +13,9 @@ const link = Mongoose.Schema({
     type: Number,
     require: true,
   },
+  lastVisit: {
+    type: Date,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

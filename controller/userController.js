@@ -40,4 +40,33 @@ module.exports = {
     }
     res.status(status).json(response.set(status, massage, data));
   },
+  loginProcess: async (req, res) => {
+    let email = req.body.email;
+    let password = req.body.password;
+
+    await userModel
+      .findOne({
+        email: {
+          $regex: ".*" + email + ".*",
+        },
+      })
+      .then((result) => {
+        const le = bcryp.compareSync(password, result.password);
+        if (le) {
+          status = response.CODE_SUCCESS;
+          massage = "Success Login";
+          data = result;
+        } else {
+          status = response.CODE_UNAUTHORIZED;
+          massage = "Failed Login";
+          data = "username and password is wrong";
+        }
+      })
+      .catch((err) => {
+        status = response.CODE_ERROR;
+        massage = "Failed Login";
+        data = err;
+      });
+    res.status(status).json(response.set(status, massage, data));
+  },
 };

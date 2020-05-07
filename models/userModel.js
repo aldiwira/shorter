@@ -17,6 +17,10 @@ const users = Mongoose.Schema({
     trim: true,
     required: true,
   },
+  _isLogin: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -62,7 +62,7 @@ module.exports = {
           if (result._isLogin) {
             status = response.CODE_UNAUTHORIZED;
             massage = "Failed Login";
-            data = "Your account has login at other side";
+            data = "Your account was active";
           } else {
             status = response.CODE_SUCCESS;
             massage = "Success Login";
@@ -83,7 +83,6 @@ module.exports = {
   },
   logoutProcess: async (req, res) => {
     let email = req.body.email;
-    let password = req.body.password;
     let filter = {
       email: {
         $regex: ".*" + email + ".*",
@@ -98,9 +97,15 @@ module.exports = {
         new: true,
       })
       .then((result) => {
-        status = response.CODE_SUCCESS;
-        massage = "your account was logout";
-        data = result;
+        if (result._isLogin) {
+          status = response.CODE_SUCCESS;
+          massage = "your account was already logout";
+          data = result;
+        } else {
+          status = response.CODE_SUCCESS;
+          massage = "your account was logout";
+          data = result;
+        }
       })
       .catch((err) => {
         status = response.CODE_ERROR;

@@ -1,18 +1,7 @@
 const linkModel = require("../models/linkModel.js");
 const response = require("../helper/response.js");
+const checker = require("../helper/checker");
 let data, code, massage;
-const checkingLinkDatas = async (datas) => {
-  return await linkModel.findOne({
-    $or: [
-      {
-        full_link: datas.full_link,
-      },
-      {
-        short_link: datas.short_link,
-      },
-    ],
-  });
-};
 module.exports = {
   getLink: async (req, res) => {
     try {
@@ -41,7 +30,7 @@ module.exports = {
       short_link: req.body.short_link,
       click_count: 0,
     };
-    if ((await checkingLinkDatas(datas)) === null) {
+    if ((await checker.checkingLinkData(datas)) === null) {
       await linkModel
         .create(datas)
         .then((result) => {

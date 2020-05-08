@@ -1,4 +1,5 @@
 const userModel = require("../models/userModel");
+const checker = require("../helper/checker");
 const bcryp = require("bcrypt");
 const response = require("../helper/response");
 let status;
@@ -13,16 +14,14 @@ const checkingDatas = async (email, username) => {
 
 module.exports = {
   registerProcess: async (req, res) => {
-    let username = req.body.username;
-    let password = bcryp.hashSync(req.body.password, 10);
-    let email = req.body.email;
-    if ((await checkingDatas(email, username)) === null) {
+    let datas = {
+      username: req.body.username,
+      password: bcryp.hashSync(req.body.password, 10),
+      email: req.body.email,
+    };
+    if ((await checker.checkingUserData(datas)) === null) {
       await userModel
-        .create({
-          username: username,
-          password: password,
-          email: email,
-        })
+        .create(datas)
         .then((result) => {
           status = response.CODE_CREATED;
           massage = "Success create users";

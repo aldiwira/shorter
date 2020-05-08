@@ -5,6 +5,5 @@ config/config.json
 npm-debug.log
 .DS_Store
 todo
-
 # Directory
 node_modules

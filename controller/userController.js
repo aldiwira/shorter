@@ -66,7 +66,7 @@ module.exports = {
           } else {
             status = response.CODE_SUCCESS;
             massage = "Success Login";
-            data = result;
+            data = true;
           }
         } else {
           status = response.CODE_UNAUTHORIZED;
@@ -100,11 +100,11 @@ module.exports = {
         if (result._isLogin) {
           status = response.CODE_SUCCESS;
           massage = "your account was already logout";
-          data = result;
+          data = true;
         } else {
           status = response.CODE_SUCCESS;
           massage = "your account was logout";
-          data = result;
+          data = false;
         }
       })
       .catch((err) => {

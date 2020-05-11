@@ -1,54 +1,64 @@
 const linkModel = require("../models/linkModel.js");
 const response = require("../helper/response.js");
 const checker = require("../helper/checker");
-let data, code, massage;
+let data;
+let code;
+let massage;
 module.exports = {
   getLink: async (req, res) => {
-    try {
-      await linkModel
-        .find()
-        .then((datas) => {
-          code = response.CODE_SUCCESS;
-          massage = response.RESPONSE_SUCCESS;
-          data = datas;
-        })
-        .catch((err) => {
-          code = response.CODE_ERROR;
-          massage = response.RESPONSE_ERROR;
-          data = err;
-        });
-    } catch (error) {
-      code = response.CODE_ERROR;
-      massage = response.RESPONSE_ERROR;
-      data = error;
-    }
+    await linkModel
+      .find()
+      .then((datas) => {
+        code = response.CODE_SUCCESS;
+        massage = response.RESPONSE_SUCCESS;
+        data = datas;
+      })
+      .catch((err) => {
+        code = response.CODE_ERROR;
+        massage = response.RESPONSE_ERROR;
+        data = err;
+      });
     res.status(code).json(response.set(code, massage, data));
   },
   createLinkData: async (req, res) => {
     const datas = {
       full_link: req.body.full_link,
       short_link: req.body.short_link,
+      owner: req.body.username,
       click_count: 0,
     };
-    if ((await checker.checkingLinkData(datas)) === null) {
-      await linkModel
-        .create(datas)
-        .then((result) => {
-          status = response.CODE_CREATED;
-          massage = response.RESPONSE_CREATED;
-          data = result;
-        })
-        .catch((err) => {
+
+    try {
+      const checkowner = await checker.checkOwnerLink(datas, req.payload);
+      const checklinkdata = await checker.checkingLinkData(datas);
+      if (checkowner !== null) {
+        if (checklinkdata === null) {
+          await linkModel
+            .create(datas)
+            .then((result) => {
+              code = response.CODE_CREATED;
+              massage = response.RESPONSE_CREATED;
+              data = result;
+            })
+            .catch((err) => {
+              code = response.CODE_ERROR;
+              massage = response.RESPONSE_ERROR;
+              data = err;
+            });
+        } else {
           code = response.CODE_ERROR;
           massage = response.RESPONSE_ERROR;
-          data = err;
-        });
-    } else {
-      code = response.CODE_ERROR;
-      massage = response.RESPONSE_ERROR;
-      data = "Your link has shorter link";
+          data = "Your link has shorter link";
+        }
+      } else {
+        code = response.CODE_ERROR;
+        massage = response.RESPONSE_ERROR;
+        data = "Owner username not found";
+      }
+      res.status(code).json(response.set(code, massage, data));
+    } catch (error) {
+      res.json(error);
     }
-    res.status(code).json(response.set(code, massage, data));
   },
   deleteLinkData: async (req, res) => {
     let short_link = req.query.short_link;

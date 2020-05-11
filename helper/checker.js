@@ -24,9 +24,16 @@ module.exports = {
           short_link: datas.short_link,
         },
       ],
+      owner: datas.owner,
     });
   },
   checkiIsLogin: async (datas) => {
     return await userModel.findOne(datas);
+  },
+  checkOwnerLink: async (datas, payload) => {
+    return await userModel.findOne({
+      _id: payload._id,
+      username: datas.owner,
+    });
   },
 };

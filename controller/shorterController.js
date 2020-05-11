@@ -24,7 +24,7 @@ module.exports = {
     const datas = {
       full_link: req.body.full_link,
       short_link: req.body.short_link,
-      owner: req.body.username,
+      owner: req.body.owner,
       click_count: 0,
     };
 
@@ -86,28 +86,38 @@ module.exports = {
     res.status(code).json(response.set(code, massage, data));
   },
   updateLinkData: async (req, res) => {
+    //fetch post datas
     let filter = {
       _id: req.body.id,
+      owner: req.body.owner,
     };
     let update = {
       full_link: req.body.full_link,
       short_link: req.body.short_link,
     };
-    await linkModel
-      .findByIdAndUpdate(filter, update, {
-        userFindAndModify: false,
-        new: true,
-      })
-      .then((result) => {
-        code = response.CODE_SUCCESS;
-        massage = "your link updated";
-        data = result;
-      })
-      .catch((err) => {
-        code = response.RESPONSE_ERROR;
-        massage = "your link not updated";
-        data = err;
-      });
+    //check owner link
+    const checkowner = await checker.checkOwnerLink(filter, req.payload);
+    if (checkowner !== null) {
+      await linkModel
+        .findByIdAndUpdate(filter, update, {
+          useFindAndModify: false,
+          new: true,
+        })
+        .then((result) => {
+          code = response.CODE_SUCCESS;
+          massage = "your link updated";
+          data = result;
+        })
+        .catch((err) => {
+          code = response.CODE_ERROR;
+          massage = "your link not updated";
+          data = err;
+        });
+    } else {
+      code = response.CODE_REJECT;
+      massage = "Wrong Owner Link";
+      data = false;
+    }
     res.status(code).json(response.set(code, massage, data));
   },
 };

@@ -32,6 +32,7 @@ module.exports = {
   },
   checkOwnerLink: async (datas, payload) => {
     return await userModel.findOne({
+      //use all user data
       _id: payload._id,
       username: datas.owner,
     });

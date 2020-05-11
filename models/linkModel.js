@@ -13,6 +13,10 @@ const link = Mongoose.Schema({
     type: Number,
     require: true,
   },
+  owner: {
+    type: String,
+    require: true,
+  },
   lastVisit: {
     type: Date,
   },

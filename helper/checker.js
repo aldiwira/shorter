@@ -26,4 +26,7 @@ module.exports = {
       ],
     });
   },
+  checkiIsLogin: async (datas) => {
+    return await userModel.findOne(datas);
+  },
 };

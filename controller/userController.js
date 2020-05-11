@@ -2,6 +2,7 @@ const userModel = require("../models/userModel");
 const checker = require("../helper/checker");
 const bcryp = require("bcrypt");
 const response = require("../helper/response");
+const JWT = require("../helper/jwt");
 let status;
 let massage;
 let data;
@@ -40,6 +41,7 @@ module.exports = {
     res.status(status).json(response.set(status, massage, data));
   },
   loginProcess: async (req, res) => {
+    //fetch request body
     let email = req.body.email;
     let password = req.body.password;
     let filter = {
@@ -50,37 +52,37 @@ module.exports = {
     let update = {
       _isLogin: true,
     };
-    await userModel
-      .findOneAndUpdate(filter, update, {
-        useFindAndModify: false,
-        new: true,
-      })
-      .then((result) => {
-        const le = bcryp.compareSync(password, result.password);
+    //check account status was login or no
+    const isLogin = await checker.checkiIsLogin(filter);
+    //fetch user datas
+    const userdatas = await userModel.findOneAndUpdate(filter, update, {
+      useFindAndModify: false,
+      new: true,
+    });
+    //validate datas
+    if (isLogin._isLogin) {
+      status = response.CODE_ERROR;
+      massage = "Your account was login";
+      data = false;
+    } else {
+      if (userdatas !== null) {
+        const le = bcryp.compareSync(password, userdatas.password);
+        let jwttoken = await JWT.JWTSign(userdatas._id);
         if (le) {
-          if (result._isLogin) {
-            status = response.CODE_UNAUTHORIZED;
-            massage = "Failed Login";
-            data = "Your account was active";
-          } else {
-            status = response.CODE_SUCCESS;
-            massage = "Success Login";
-            data = true;
-          }
-        } else {
-          status = response.CODE_UNAUTHORIZED;
-          massage = "Failed Login";
-          data = "username and password is wrong";
+          status = response.CODE_SUCCESS;
+          massage = "Login was successful";
+          data = {
+            account: userdatas,
+            token: jwttoken,
+          };
         }
-      })
-      .catch((err) => {
-        status = response.CODE_ERROR;
-        massage = "Failed Login";
-        data = err;
-      });
+      }
+    }
+
     res.status(status).json(response.set(status, massage, data));
   },
   logoutProcess: async (req, res) => {
+    //fetch request body
     let email = req.body.email;
     let filter = {
       email: {
@@ -90,27 +92,25 @@ module.exports = {
     let update = {
       _isLogin: false,
     };
-    await userModel
-      .findOneAndUpdate(filter, update, {
-        useFindAndModify: false,
-        new: true,
-      })
-      .then((result) => {
-        if (result._isLogin) {
-          status = response.CODE_SUCCESS;
-          massage = "your account was already logout";
-          data = true;
-        } else {
-          status = response.CODE_SUCCESS;
-          massage = "your account was logout";
-          data = false;
-        }
-      })
-      .catch((err) => {
-        status = response.CODE_ERROR;
-        massage = "Failed to logout";
-        data = err;
-      });
+    //fetch user datas
+    const userdatas = await userModel.findOneAndUpdate(filter, update, {
+      useFindAndModify: false,
+      new: true,
+    });
+    //check account islogin
+    const isLogin = await checker.checkiIsLogin(filter);
+    //validation and send response datas
+    if (isLogin._isLogin) {
+      status = response.CODE_ERROR;
+      massage = "your account was active";
+      data = false;
+    } else {
+      if (userdatas !== null) {
+        status = response.CODE_SUCCESS;
+        massage = "your account was log out";
+        data = false;
+      }
+    }
     res.status(status).json(response.set(status, massage, data));
   },
 };

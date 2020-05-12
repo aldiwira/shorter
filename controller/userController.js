@@ -45,9 +45,7 @@ module.exports = {
     let email = req.body.email;
     let password = req.body.password;
     let filter = {
-      email: {
-        $regex: ".*" + email + ".*",
-      },
+      email: email,
     };
     let update = {
       _isLogin: true,
@@ -60,23 +58,33 @@ module.exports = {
       new: true,
     });
     //validate datas
-    if (isLogin._isLogin) {
-      status = response.CODE_ERROR;
-      massage = "Your account was login";
-      data = false;
-    } else {
-      if (userdatas !== null) {
-        const le = bcryp.compareSync(password, userdatas.password);
-        let jwttoken = await JWT.JWTSign(userdatas._id);
-        if (le) {
-          status = response.CODE_SUCCESS;
-          massage = "Login was successful";
-          data = {
-            account: userdatas,
-            token: jwttoken,
-          };
+    if (isLogin !== null) {
+      if (isLogin._isLogin) {
+        status = response.CODE_ERROR;
+        massage = "Your account was login";
+        data = false;
+      } else {
+        if (userdatas !== null) {
+          const le = bcryp.compareSync(password, userdatas.password);
+          let jwttoken = await JWT.JWTSign(userdatas._id);
+          if (le) {
+            status = response.CODE_SUCCESS;
+            massage = "Login was successful";
+            data = {
+              account: userdatas,
+              token: jwttoken,
+            };
+          } else {
+            status = response.CODE_ERROR;
+            massage = "check your password and email";
+            data = false;
+          }
         }
       }
+    } else {
+      status = response.CODE_ERROR;
+      massage = "check your password and email";
+      data = false;
     }
 
     res.status(status).json(response.set(status, massage, data));

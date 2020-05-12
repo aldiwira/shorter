@@ -7,12 +7,6 @@ let status;
 let massage;
 let data;
 
-const checkingDatas = async (email, username) => {
-  return await userModel.findOne({
-    $or: [{ email: email }, { username: username }],
-  });
-};
-
 module.exports = {
   registerProcess: async (req, res) => {
     let datas = {
@@ -44,8 +38,11 @@ module.exports = {
     //fetch request body
     let email = req.body.email;
     let password = req.body.password;
+    let username = req.body.username;
+
     let filter = {
       email: email,
+      username: username,
     };
     let update = {
       _isLogin: true,

@@ -24,12 +24,13 @@ module.exports = {
     const datas = {
       full_link: req.body.full_link,
       short_link: req.body.short_link,
-      owner: req.body.owner,
+      owner: req.payload._id,
       click_count: 0,
     };
 
     try {
       const checkowner = await checker.checkOwnerLink(datas, req.payload);
+      console.log(checkowner);
       const checklinkdata = await checker.checkingLinkData(datas);
       if (checkowner !== null) {
         if (checklinkdata === null) {
@@ -89,7 +90,7 @@ module.exports = {
     //fetch post datas
     let filter = {
       _id: req.body.id,
-      owner: req.body.owner,
+      owner: req.payload._id,
     };
     let update = {
       full_link: req.body.full_link,
@@ -118,6 +119,36 @@ module.exports = {
       massage = "Wrong Owner Link";
       data = false;
     }
+    res.status(code).json(response.set(code, massage, data));
+  },
+  fetchLinkById: async (req, res) => {
+    const filter = {
+      _id: req.params.id,
+    };
+
+    const userdatas = await checker.checkiIsLogin(filter);
+
+    if (userdatas !== null) {
+      await linkModel
+        .find({
+          owner: req.params.id,
+        })
+        .then((result) => {
+          code = response.CODE_SUCCESS;
+          massage = response.RESPONSE_SUCCESS;
+          data = result;
+        })
+        .catch((err) => {
+          code = response.CODE_ERROR;
+          massage = response.RESPONSE_ERROR;
+          data = err;
+        });
+    } else {
+      code = response.CODE_ERROR;
+      massage = response.RESPONSE_ERROR;
+      data = false;
+    }
+
     res.status(code).json(response.set(code, massage, data));
   },
 };

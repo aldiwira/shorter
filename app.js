@@ -11,12 +11,9 @@ const mainRoute = require("./router/mainRoute");
 const morgan = require("morgan");
 
 //make file for save log to file
-let logStream = fs.createWriteStream(
-  path.join(__dirname + "/logger", "access.log"),
-  {
-    flags: "a",
-  }
-);
+let logStream = fs.createWriteStream(path.join("./logger", "access.log"), {
+  flags: "a",
+});
 //middleware morgan
 app.use(
   morgan("combined", {

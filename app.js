@@ -32,8 +32,8 @@ db.on("error", (error) => console.log(error));
 db.once("open", () => console.log("Connected"));
 
 //service handler
-app.listen(process.env.PORT_RUN || 3000, () => {
+app.listen(process.env.PORT, () => {
   console.log(
-    "Magic at http://" + process.env.HOST_RUN + ":" + process.env.PORT_RUN
+    "Magic at http://" + process.env.HOST_RUN + ":" + process.env.PORT
   );
 });

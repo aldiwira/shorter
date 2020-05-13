@@ -26,6 +26,7 @@ module.exports = {
       short_link: req.body.short_link,
       owner: req.payload._id,
       click_count: 0,
+      lastVisit: Date.now(),
     };
 
     try {

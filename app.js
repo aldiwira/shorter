@@ -10,17 +10,6 @@ const redirectRoute = require("./router/redirectRouter");
 const mainRoute = require("./router/mainRoute");
 const morgan = require("morgan");
 
-//make file for save log to file
-let logStream = fs.createWriteStream(path.join("./logger", "access.log"), {
-  flags: "a",
-});
-//middleware morgan
-app.use(
-  morgan("combined", {
-    stream: logStream,
-  })
-);
-
 app.use(bodyparse.json());
 app.use(express.json());
 

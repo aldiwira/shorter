@@ -10,20 +10,6 @@ const redirectRoute = require("./router/redirectRouter");
 const mainRoute = require("./router/mainRoute");
 const morgan = require("morgan");
 
-//make file for save log to file
-let logStream = fs.createWriteStream(
-  path.join(__dirname + "/logger", "access.log"),
-  {
-    flags: "a",
-  }
-);
-//middleware morgan
-app.use(
-  morgan("combined", {
-    stream: logStream,
-  })
-);
-
 app.use(bodyparse.json());
 app.use(express.json());
 
@@ -46,8 +32,8 @@ db.on("error", (error) => console.log(error));
 db.once("open", () => console.log("Connected"));
 
 //service handler
-app.listen(process.env.PORT_RUN || 3000, () => {
+app.listen(process.env.PORT, () => {
   console.log(
-    "Magic at http://" + process.env.HOST_RUN + ":" + process.env.PORT_RUN
+    "Magic at http://" + process.env.HOST_RUN + ":" + process.env.PORT
   );
 });

@@ -17,14 +17,14 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.status(200).json({
     name: "Shorter Link",
-    ver: "0.1.0",
+    ver: "2.0.0",
   });
 });
 
 //for handle shorter process
 app.use("/", mainRoute);
 app.use("/shorter", shorterRoute);
-app.use("/axios", redirectRoute);
+app.use("/ax", redirectRoute);
 
 //db checking
 const db = mongoose.connection;

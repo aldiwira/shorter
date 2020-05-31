@@ -36,4 +36,7 @@ module.exports = {
       _id: payload._id,
     });
   },
+  datas: async (model, condition) => {
+    return await model.findOne(condition);
+  },
 };

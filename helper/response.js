@@ -1,4 +1,5 @@
 module.exports = {
+  SALT_CODE: 10,
   CODE_SUCCESS: 200,
   CODE_CREATED: 201,
   CODE_ERROR: 400,

@@ -27,9 +27,6 @@ module.exports = {
       owner: datas.owner,
     });
   },
-  checkiIsLogin: async (datas) => {
-    return await userModel.findOne(datas);
-  },
   checkOwnerLink: async (datas, payload) => {
     return await userModel.findOne({
       //use all user data

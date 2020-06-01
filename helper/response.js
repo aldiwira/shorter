@@ -1,3 +1,6 @@
+const moment = require("moment");
+const now = moment();
+
 module.exports = {
   SALT_CODE: 10,
   CODE_SUCCESS: 200,
@@ -18,5 +21,8 @@ module.exports = {
       massage: massage,
       data: data,
     };
+  },
+  getDate: () => {
+    return now.format();
   },
 };

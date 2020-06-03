@@ -62,8 +62,14 @@ module.exports = {
 
     let condition = {
       filter: {
-        email: datas.email,
-        username: datas.username,
+        $or: [
+          {
+            email: datas.email,
+          },
+          {
+            username: datas.username,
+          },
+        ],
       },
       update: {
         _isLogin: true,
@@ -75,6 +81,7 @@ module.exports = {
     //fetch user datas
     const userdatas = await findandupdate(condition);
 
+    console.log(isLogin);
     //cheking status login account
     if (isLogin._isLogin) {
       status = response.CODE_ERROR;

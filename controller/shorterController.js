@@ -5,6 +5,12 @@ const checker = require("../helper/checker");
 let data;
 let code;
 let massage;
+
+const checkDatas = async (type, condition) => {
+  if (type === "owner") return await checker.datas(userModel, condition);
+  if (type === "link") return await checker.datas(linkModel, condition);
+};
+
 module.exports = {
   getLink: async (req, res) => {
     await linkModel.find().then((datas) => {
@@ -21,26 +27,29 @@ module.exports = {
       short_link: req.body.short_link,
       owner: req.payload._id,
       click_count: 0,
-      lastVisit: response.getDate(),
+      lastVisit: Date.now(),
     };
-    const checkowner = await checker.checkOwnerLink(datas, req.payload);
-    const checklinkdata = await checker.checkingLinkData(datas);
-    if (checkowner !== null) {
-      if (checklinkdata === null) {
-        await linkModel.create(datas).then((result) => {
-          code = response.CODE_CREATED;
-          massage = response.RESPONSE_CREATED;
-          data = result;
-        });
-      } else {
-        code = response.CODE_ERROR;
-        massage = response.RESPONSE_ERROR;
-        data = "Your link has shorter link";
-      }
+    const checklinkdata = await checkDatas("link", {
+      $or: [
+        {
+          full_link: datas.full_link,
+        },
+        {
+          short_link: datas.short_link,
+        },
+      ],
+      owner: datas.owner,
+    });
+    if (!checklinkdata) {
+      await linkModel.create(datas).then((result) => {
+        code = response.CODE_CREATED;
+        massage = response.RESPONSE_CREATED;
+        data = result;
+      });
     } else {
       code = response.CODE_ERROR;
       massage = response.RESPONSE_ERROR;
-      data = "Owner username not found";
+      data = "Your link has shorter link";
     }
     res.status(code).json(response.set(code, massage, data));
   },
@@ -77,24 +86,26 @@ module.exports = {
     let update = {
       full_link: req.body.full_link,
       short_link: req.body.short_link,
-      updatedAt: response.getDate(),
     };
     //check owner link
-    const checkowner = await checker.datas(userModel, { _id: filter.owner });
-    if (checkowner !== null) {
-      await linkModel
-        .findByIdAndUpdate(filter, update, {
-          useFindAndModify: false,
-          new: true,
-        })
-        .then((result) => {
-          code = response.CODE_SUCCESS;
-          massage = "your link updated";
-          data = result;
-        });
+    const checkOwner = await checkDatas("owner", { _id: filter.owner });
+    const checkLink = await checkDatas("link", { _id: filter._id });
+    if (checkLink) {
+      if (checkOwner) {
+        await linkModel
+          .findByIdAndUpdate(filter, update, {
+            useFindAndModify: false,
+            new: true,
+          })
+          .then((result) => {
+            code = response.CODE_SUCCESS;
+            massage = "your link updated";
+            data = result;
+          });
+      }
     } else {
-      code = response.CODE_REJECT;
-      massage = "Wrong Owner Link";
+      code = response.CODE_ERROR;
+      massage = "Link ID Not Found";
       data = false;
     }
     res.status(code).json(response.set(code, massage, data));

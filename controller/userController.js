@@ -15,6 +15,11 @@ const findandupdate = async (condition) => {
   });
 };
 
+//generate json token
+const generateJWT = async (id) => {
+  return await JWT.JWTSign(id);
+};
+
 module.exports = {
   registerProcess: async (req, res) => {
     let datas = {
@@ -36,10 +41,14 @@ module.exports = {
     if (!(await checker.datas(userModel, condition))) {
       await userModel
         .create(datas)
-        .then((result) => {
+        .then(async (result) => {
+          const jwt = await generateJWT(result._id);
           status = response.CODE_CREATED;
           massage = "Success create users";
-          data = result;
+          data = {
+            account: result,
+            token: jwt,
+          };
         })
         .catch((err) => {
           status = response.CODE_ERROR;
@@ -79,38 +88,38 @@ module.exports = {
     //check account status was login or no
     const isLogin = await checker.datas(userModel, condition.filter);
     //fetch user datas
-    const userdatas = await findandupdate(condition);
+    const userdatas = await findandupdate(condition.filter);
 
-    console.log(isLogin);
-    //cheking status login account
-    if (isLogin._isLogin) {
-      status = response.CODE_ERROR;
-      massage = "Your account was login";
-      data = false;
-    } else {
-      //checking userdatas
-      if (userdatas !== null) {
-        //becrypt password datas
-        const le = bcryp.compareSync(datas.password, userdatas.password);
-        //generate JWT Code
-        let jwttoken = await JWT.JWTSign(userdatas._id);
-        if (le) {
+    if (userdatas) {
+      //becrypt password datas
+      const passwordCheck = bcryp.compareSync(
+        datas.password,
+        userdatas.password
+      );
+      if (passwordCheck) {
+        //generate web token
+        if (!isLogin._isLogin) {
+          const jwt = await generateJWT(result._id);
           status = response.CODE_SUCCESS;
           massage = "Login was successful";
           data = {
             account: userdatas,
-            token: jwttoken,
+            token: jwt,
           };
         } else {
           status = response.CODE_ERROR;
-          massage = "check your password and email";
+          massage = "Your account was active";
           data = false;
         }
       } else {
         status = response.CODE_ERROR;
-        massage = "check your password and email";
+        massage = "check your username or email and password";
         data = false;
       }
+    } else {
+      status = response.CODE_ERROR;
+      massage = "check your username or email and password";
+      data = false;
     }
 
     res.status(status).json(response.set(status, massage, data));

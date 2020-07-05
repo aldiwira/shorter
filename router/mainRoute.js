@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const user = require("../controller/userController");
+const validator = require("../helper/myValidator");
 const JWT = require("../helper/jwt");
 
 //Register account
-router.post("/register", user.registerProcess);
+router.post("/register", validator.checkRegister, user.registerProcess);
 //LogIn Account
-router.post("/login", user.loginProcess);
+router.post("/login", validator.checkLogin, user.loginProcess);
 //LogOut Account
 router.post("/logout", user.logoutProcess);
 

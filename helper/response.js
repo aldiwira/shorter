@@ -5,6 +5,7 @@ module.exports = {
   CODE_ERROR: 400,
   CODE_UNAUTHORIZED: 401,
   CODE_REJECT: 403,
+  CODE_NOTFOUND: 404,
   RESPONSE_CREATED: "Data created",
   RESPONSE_SUCCESS: "Data Loaded",
   RESPONSE_ERROR: "Error",

@@ -3,6 +3,7 @@ const checker = require("../helper/checker");
 const bcryp = require("bcrypt");
 const response = require("../helper/response");
 const JWT = require("../helper/jwt");
+const { body, validationResult } = require("express-validator");
 let status;
 let massage;
 let data;
@@ -99,7 +100,7 @@ module.exports = {
       if (passwordCheck) {
         //generate web token
         if (!isLogin._isLogin) {
-          const jwt = await generateJWT(result._id);
+          const jwt = await generateJWT(userdatas._id);
           status = response.CODE_SUCCESS;
           massage = "Login was successful";
           data = {

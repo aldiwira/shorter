@@ -9,6 +9,6 @@ router.post("/register", validator.checkRegister, user.registerProcess);
 //LogIn Account
 router.post("/login", validator.checkLogin, user.loginProcess);
 //LogOut Account
-router.post("/logout", user.logoutProcess);
+router.post("/logout", JWT.JWTAuth, user.logoutProcess);
 
 module.exports = router;

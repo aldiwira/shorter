@@ -80,7 +80,13 @@ module.exports = {
     //check account status was login or no
     const isLogin = await checker.datas(userModel, condition.filter);
     //fetch user datas
-    const userdatas = await findandupdate(condition.filter);
+    const userdatas = await userModel.findOneAndUpdate(
+      condition.filter,
+      condition.update,
+      {
+        useFindAndModify: false,
+      }
+    );
 
     if (userdatas) {
       //becrypt password datas
@@ -118,12 +124,10 @@ module.exports = {
   },
   logoutProcess: async (req, res) => {
     //fetch request body
-    let email = req.body.email;
+    let ids = req.payload._id;
     let condition = {
       filter: {
-        email: {
-          $regex: ".*" + email + ".*",
-        },
+        _id: ids,
       },
       update: {
         _isLogin: false,
@@ -131,21 +135,18 @@ module.exports = {
     };
 
     //fetch user datas
-    const userdatas = await findandupdate(condition);
-    //check account islogin
-    const isLogin = await checker.datas(userModel, condition.filter);
-    //validation and send response datas
-    if (isLogin._isLogin) {
-      status = response.CODE_ERROR;
-      massage = "your account was login";
-      data = false;
-    } else {
-      //checking datas for logout
-      if (userdatas !== null) {
-        status = response.CODE_SUCCESS;
-        massage = "your account was logout";
-        data = false;
+    const userdatas = await userModel.findByIdAndUpdate(
+      condition.filter,
+      condition.update,
+      {
+        useFindAndModify: false,
       }
+    );
+    //validation and send response datas
+    if (userdatas !== null) {
+      status = response.CODE_SUCCESS;
+      massage = "your account was logout";
+      data = false;
     }
     res.status(status).json(response.set(status, massage, data));
   },

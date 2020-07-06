@@ -2,6 +2,7 @@ const linkModel = require("../models/linkModel");
 const userModel = require("../models/userModel");
 const response = require("../helper/response");
 const checker = require("../helper/checker");
+const { validationResult } = require("express-validator");
 let data;
 let code;
 let massage;
@@ -22,6 +23,10 @@ module.exports = {
   },
   //function for create link data
   createLinkData: async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
     const datas = {
       full_link: req.body.full_link,
       short_link: req.body.short_link,
@@ -53,29 +58,50 @@ module.exports = {
     }
     res.status(code).json(response.set(code, massage, data));
   },
+  fetchByIdLink: async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+    await linkModel
+      .findById(req.params.id)
+      .then((result) => {
+        code = response.CODE_SUCCESS;
+        massage = response.RESPONSE_SUCCESS;
+        data = result;
+      })
+      .catch((err) => {
+        code = response.CODE_ERROR;
+        massage = response.RESPONSE_ERROR;
+        data = err;
+      });
+    res.status(code).json(response.set(code, massage, data));
+  },
   //function for delete link data by id
   deleteLinkData: async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
     let filter = {
       _id: req.params.id,
       owner: req.payload._id,
     };
-    //checking link datas
-    if (!(await checker.datas(linkModel, filter))) {
-      code = response.CODE_REJECT;
-      massage = "Your link not found";
-      data = false;
-    } else {
-      //delete logic
-      await linkModel.findByIdAndDelete(filter._id).then((result) => {
-        code = response.CODE_SUCCESS;
-        massage = "Your link deleted";
-        data = true;
-      });
-    }
+    //delete logic
+    await linkModel.findByIdAndDelete(filter._id).then((result) => {
+      code = response.CODE_SUCCESS;
+      massage = "Your link deleted";
+      data = true;
+    });
+
     res.status(code).json(response.set(code, massage, data));
   },
   //update link data
   updateLinkData: async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
     //fetch post datas
     let filter = {
       //id_link
@@ -89,25 +115,20 @@ module.exports = {
     };
     //check owner link
     const checkOwner = await checkDatas("owner", { _id: filter.owner });
-    const checkLink = await checkDatas("link", { _id: filter._id });
-    if (checkLink) {
-      if (checkOwner) {
-        await linkModel
-          .findByIdAndUpdate(filter, update, {
-            useFindAndModify: false,
-            new: true,
-          })
-          .then((result) => {
-            code = response.CODE_SUCCESS;
-            massage = "your link updated";
-            data = result;
-          });
-      }
-    } else {
-      code = response.CODE_ERROR;
-      massage = "Link ID Not Found";
-      data = false;
+
+    if (checkOwner) {
+      await linkModel
+        .findByIdAndUpdate(filter, update, {
+          useFindAndModify: false,
+          new: true,
+        })
+        .then((result) => {
+          code = response.CODE_SUCCESS;
+          massage = "your link updated";
+          data = result;
+        });
     }
+
     res.status(code).json(response.set(code, massage, data));
   },
   //fetch link by id

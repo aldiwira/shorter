@@ -110,4 +110,26 @@ module.exports = {
       .isLength({ min: 5 })
       .withMessage("password must be at least 7 character"),
   ],
+  checkChangeProfile: [
+    check("username")
+      .isLength({ min: 5 })
+      .withMessage("wrong username length")
+      .custom((value) => {
+        return checkDatas(
+          userModel,
+          { username: value },
+          "Username was already taken"
+        );
+      }),
+    check("email")
+      .isEmail()
+      .withMessage("wrong email format")
+      .custom((value) => {
+        return checkDatas(
+          userModel,
+          { email: value },
+          "email was already taken"
+        );
+      }),
+  ],
 };

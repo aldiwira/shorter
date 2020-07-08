@@ -69,4 +69,34 @@ module.exports = {
     });
     res.status(codeStatus).json(response.set(codeStatus, massage, data));
   },
+  changeProfile: async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+    const datas = {
+      filter: {
+        _id: req.payload._id,
+      },
+      update: {
+        username: req.body.username,
+        email: req.body.email,
+      },
+    };
+    await usermodel
+      .findByIdAndUpdate(datas.filter, datas.update, {
+        useFindAndModify: false,
+      })
+      .then((value) => {
+        codeStatus = response.CODE_SUCCESS;
+        massage = "your account data was changed";
+        data = value;
+      })
+      .catch((err) => {
+        codeStatus = response.CODE_ERROR;
+        massage = response.RESPONSE_ERROR;
+        data = err;
+      });
+    res.status(codeStatus).json(response.set(codeStatus, massage, data));
+  },
 };

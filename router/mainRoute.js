@@ -14,11 +14,19 @@ router.post("/logout", JWT.JWTAuth, user.logoutProcess);
 
 //router user handling
 router.get("/user", JWT.JWTAuth, uHandling.fetchUserInformation);
+//change password
 router.post(
   "/user/changepassword",
   JWT.JWTAuth,
   validator.checkChangePass,
   uHandling.doChangePassword
+);
+//change username and email
+router.put(
+  "/user/edit",
+  JWT.JWTAuth,
+  validator.checkChangeProfile,
+  uHandling.changeProfile
 );
 
 module.exports = router;

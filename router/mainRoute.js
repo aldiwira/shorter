@@ -28,5 +28,11 @@ router.put(
   validator.checkChangeProfile,
   uHandling.changeProfile
 );
+router.delete(
+  "/user/delete/:id",
+  JWT.JWTAuth,
+  validator.checkIdUser,
+  uHandling.removeAccount
+);
 
 module.exports = router;

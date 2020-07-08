@@ -92,6 +92,15 @@ module.exports = {
       });
     }),
   ],
+  checkIdUser: [
+    param("id").custom((value) => {
+      return userModel.findById(value).then((val) => {
+        if (val === null) {
+          return Promise.reject("link id not found");
+        }
+      });
+    }),
+  ],
   checkChangePass: [
     check("old_password")
       .isLength({ min: 5 })

@@ -1,4 +1,5 @@
 const usermodel = require("../models/userModel");
+const linkmodel = require("../models/linkModel");
 const response = require("../helper/response");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
@@ -97,6 +98,46 @@ module.exports = {
         massage = response.RESPONSE_ERROR;
         data = err;
       });
+    res.status(codeStatus).json(response.set(codeStatus, massage, data));
+  },
+  removeAccount: async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+    const datas = {
+      filter: {
+        _id: req.params.id,
+      },
+      update: {
+        _id: req.payload._id,
+      },
+    };
+    if (datas.filter._id === datas.update._id) {
+      const deleteAcc = await usermodel
+        .findByIdAndRemove(datas.filter, {
+          useFindAndModify: false,
+        })
+        .then(async (value) => {
+          if (value) {
+            await linkmodel.find({ owner: datas.filter }).then((value) => {
+              value.map(async (data) => {
+                await linkmodel.findOneAndDelete(
+                  { owner: datas.filter._id },
+                  { useFindAndModify: false }
+                );
+              });
+            });
+            codeStatus = response.CODE_SUCCESS;
+            massage = "your account data was deleted";
+            data = true;
+          }
+        });
+    } else {
+      codeStatus = response.CODE_ERROR;
+      massage = "Your account can't deleted";
+      data = false;
+    }
     res.status(codeStatus).json(response.set(codeStatus, massage, data));
   },
 };

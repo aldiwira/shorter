@@ -8,17 +8,21 @@ router.get("/:shortLink", (req, res) => {
   linkModel
     .findOne(short_link)
     .then((datas) => {
-      const link = datas.full_link;
-      const value = datas.click_count;
-      counter.count(value, req.params.shortLink).then((datas) => {});
-      if (link.includes("http://") || link.includes("https://")) {
-        res.redirect(link);
+      if (datas) {
+        const link = datas.full_link;
+        const value = datas.click_count;
+        counter.count(value, req.params.shortLink).then((datas) => {});
+        if (link.includes("http://") || link.includes("https://")) {
+          res.redirect(link);
+        } else {
+          res.redirect("https://" + link);
+        }
       } else {
-        res.redirect("https://" + link);
+        res.status(404).send("NOT FOUND");
       }
     })
     .catch((err) => {
-      console.log(err);
+      res.status(400).send(err);
     });
 });
 

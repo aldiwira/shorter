@@ -5,9 +5,9 @@ const {
   validationResult,
   oneOf,
 } = require("express-validator");
-const userdata = require("../models/userModel");
 const userModel = require("../models/userModel");
 const linkModel = require("../models/linkModel");
+const bcrypt = require("bcrypt");
 
 const checkDatas = async (model, value, arg) => {
   return await model.findOne(value).then((res) => {
@@ -91,5 +91,23 @@ module.exports = {
         }
       });
     }),
+  ],
+  checkChangePass: [
+    check("old_password")
+      .isLength({ min: 5 })
+      .withMessage("password must be at least 7 character"),
+    check("new_password")
+      .isLength({ min: 5 })
+      .withMessage("password must be at least 7 character")
+      .custom((value, { req }) => {
+        if (req.body.confirm_password !== value) {
+          throw new Error("Password confirmation is incorrect");
+        } else {
+          return value;
+        }
+      }),
+    check("confirm_password")
+      .isLength({ min: 5 })
+      .withMessage("password must be at least 7 character"),
   ],
 };

@@ -12,7 +12,6 @@ const morgan = require("morgan");
 
 app.use(bodyparse.json());
 app.use(express.json());
-
 //tester
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -22,9 +21,10 @@ app.get("/", (req, res) => {
 });
 
 //for handle shorter process
+//user sides
 app.use("/", mainRoute);
 app.use("/shorter", shorterRoute);
-app.use("/ax", redirectRoute);
+app.use("/", redirectRoute);
 
 //db checking
 const db = mongoose.connection;

@@ -124,21 +124,25 @@ module.exports = {
       .isLength({ min: 5 })
       .withMessage("wrong username length")
       .custom((value) => {
-        return checkDatas(
-          userModel,
-          { username: value },
-          "Username was already taken"
-        );
+        return userModel.findOne({ username: value }).then((data) => {
+          if (data) {
+            if (value !== data.username) {
+              Promise.reject(`${value} as username was available`);
+            }
+          }
+        });
       }),
     check("email")
       .isEmail()
       .withMessage("wrong email format")
       .custom((value) => {
-        return checkDatas(
-          userModel,
-          { email: value },
-          "email was already taken"
-        );
+        return userModel.findOne({ email: value }).then((data) => {
+          if (data) {
+            if (value !== data.email) {
+              Promise.reject(`${value} as email was available`);
+            }
+          }
+        });
       }),
   ],
 };

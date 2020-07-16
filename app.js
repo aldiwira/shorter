@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
-const fs = require("fs");
-const path = require("path");
+const helmet = require("helmet");
+const cors = require("cors");
 const bodyparse = require("body-parser");
 const mongoose = require("./config/db.js");
 const dotenv = require("dotenv/config");
@@ -10,8 +10,11 @@ const redirectRoute = require("./router/redirectRouter");
 const mainRoute = require("./router/mainRoute");
 const morgan = require("morgan");
 
+app.use(helmet());
+app.use(cors());
 app.use(bodyparse.json());
 app.use(express.json());
+app.use(morgan("dev"));
 //tester
 app.get("/", (req, res) => {
   res.status(200).json({

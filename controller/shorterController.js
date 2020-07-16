@@ -64,7 +64,7 @@ module.exports = {
       return res.status(422).json({ errors: errors.array() });
     }
     await linkModel
-      .findById(req.params.id)
+      .findOne({ _id: req.params.id, owner: req.payload._id })
       .then((result) => {
         code = response.CODE_SUCCESS;
         massage = response.RESPONSE_SUCCESS;
@@ -88,7 +88,7 @@ module.exports = {
       owner: req.payload._id,
     };
     //delete logic
-    await linkModel.findByIdAndDelete(filter._id).then((result) => {
+    await linkModel.findByIdAndDelete(filter).then((result) => {
       code = response.CODE_SUCCESS;
       massage = "Your link deleted";
       data = true;
@@ -113,21 +113,16 @@ module.exports = {
       full_link: req.body.full_link,
       short_link: req.body.short_link,
     };
-    //check owner link
-    const checkOwner = await checkDatas("owner", { _id: filter.owner });
-
-    if (checkOwner) {
-      await linkModel
-        .findByIdAndUpdate(filter, update, {
-          useFindAndModify: false,
-          new: true,
-        })
-        .then((result) => {
-          code = response.CODE_SUCCESS;
-          massage = "your link updated";
-          data = result;
-        });
-    }
+    await linkModel
+      .findByIdAndUpdate(filter, update, {
+        useFindAndModify: false,
+        new: true,
+      })
+      .then((result) => {
+        code = response.CODE_SUCCESS;
+        massage = "your link updated";
+        data = result;
+      });
 
     res.status(code).json(response.set(code, massage, data));
   },

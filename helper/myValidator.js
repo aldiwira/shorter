@@ -68,7 +68,7 @@ module.exports = {
       .notEmpty()
       .withMessage("Must fill the short alias"),
   ],
-  checkCreateData: [
+  checkEditLink: [
     body("full_link").isURL().withMessage("Must be format url"),
     body("short_link")
       .isLength({ min: 5 })

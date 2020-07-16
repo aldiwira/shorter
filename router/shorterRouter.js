@@ -27,7 +27,7 @@ router.delete(
 router.put(
   "/:id/update",
   JWT.JWTAuth,
-  validator.checkCreateData,
+  validator.checkEditLink,
   controller.updateLinkData
 );
 

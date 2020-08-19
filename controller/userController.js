@@ -3,84 +3,120 @@ const checker = require("../helper/checker");
 const bcryp = require("bcrypt");
 const response = require("../helper/response");
 const JWT = require("../helper/jwt");
+const { validationResult } = require("express-validator");
 let status;
 let massage;
 let data;
 
+//for find and update userdatas
+const findandupdate = async (condition) => {
+  return await userModel.findOneAndUpdate(condition.filter, condition.update, {
+    useFindAndModify: false,
+    new: true,
+  });
+};
+
+//generate json token
+const generateJWT = async (id) => {
+  return await JWT.JWTSign(id);
+};
+
 module.exports = {
   registerProcess: async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
     let datas = {
       username: req.body.username,
-      password: bcryp.hashSync(req.body.password, 10),
+      password: bcryp.hashSync(req.body.password, response.SALT_CODE),
       email: req.body.email,
     };
-    if ((await checker.checkingUserData(datas)) === null) {
-      await userModel
-        .create(datas)
-        .then((result) => {
-          status = response.CODE_CREATED;
-          massage = "Success create users";
-          data = result;
-        })
-        .catch((err) => {
-          status = response.CODE_ERROR;
-          massage = "Failed create users";
-          data = err;
-        });
-    } else {
-      status = response.CODE_ERROR;
-      massage = "Username or email is available";
-      data = false;
-    }
+    await userModel
+      .create(datas)
+      .then(async (result) => {
+        const jwt = await generateJWT(result._id);
+        status = response.CODE_CREATED;
+        massage = "Success create users";
+        data = {
+          account: result,
+          token: jwt,
+        };
+      })
+      .catch((err) => {
+        status = response.CODE_ERROR;
+        massage = "Failed create users";
+        data = err;
+      });
     res.status(status).json(response.set(status, massage, data));
   },
   loginProcess: async (req, res) => {
-    //fetch request body
-    let email = req.body.email;
-    let password = req.body.password;
-    let username = req.body.username;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+    let datas = {
+      email: req.body.email,
+      password: req.body.password,
+      username: req.body.username,
+    };
 
-    let filter = {
-      email: email,
-      username: username,
+    let condition = {
+      filter: {
+        $or: [
+          {
+            email: datas.email,
+          },
+          {
+            username: datas.username,
+          },
+        ],
+      },
+      update: {
+        _isLogin: true,
+      },
     };
-    let update = {
-      _isLogin: true,
-    };
+
     //check account status was login or no
-    const isLogin = await checker.checkiIsLogin(filter);
+    const isLogin = await checker.datas(userModel, condition.filter);
     //fetch user datas
-    const userdatas = await userModel.findOneAndUpdate(filter, update, {
-      useFindAndModify: false,
-      new: true,
-    });
-    //validate datas
-    if (isLogin !== null) {
-      if (isLogin._isLogin) {
-        status = response.CODE_ERROR;
-        massage = "Your account was login";
-        data = false;
-      } else {
-        if (userdatas !== null) {
-          const le = bcryp.compareSync(password, userdatas.password);
-          let jwttoken = await JWT.JWTSign(userdatas._id);
-          if (le) {
-            status = response.CODE_SUCCESS;
-            massage = "Login was successful";
-            data = {
-              account: userdatas,
-              token: jwttoken,
-            };
-          } else {
-            status = response.CODE_ERROR;
-            massage = "check your password and email";
-            data = false;
-          }
+    const userdatas = await userModel.findOneAndUpdate(
+      condition.filter,
+      condition.update,
+      {
+        useFindAndModify: false,
+      }
+    );
+
+    if (userdatas) {
+      //becrypt password datas
+      const passwordCheck = bcryp.compareSync(
+        datas.password,
+        userdatas.password
+      );
+      if (passwordCheck) {
+        //generate web token
+        if (!isLogin._isLogin) {
+          const jwt = await generateJWT(userdatas._id);
+          status = response.CODE_SUCCESS;
+          massage = "Login was successful";
+          data = {
+            account: userdatas,
+            token: jwt,
+          };
+        } else {
+          status = response.CODE_ERROR;
+          massage = "Your account was active";
+          data = false;
         }
+      } else {
+        status = response.CODE_ERROR;
+        massage = "check your username or email and password";
+        data = false;
       }
     } else {
       status = response.CODE_ERROR;
-      massage = "check your password and email";
+      massage = "check your username or email and password";
       data = false;
     }
 
@@ -88,33 +124,29 @@ module.exports = {
   },
   logoutProcess: async (req, res) => {
     //fetch request body
-    let email = req.body.email;
-    let filter = {
-      email: {
-        $regex: ".*" + email + ".*",
+    let ids = req.payload._id;
+    let condition = {
+      filter: {
+        _id: ids,
+      },
+      update: {
+        _isLogin: false,
       },
     };
-    let update = {
-      _isLogin: false,
-    };
+
     //fetch user datas
-    const userdatas = await userModel.findOneAndUpdate(filter, update, {
-      useFindAndModify: false,
-      new: true,
-    });
-    //check account islogin
-    const isLogin = await checker.checkiIsLogin(filter);
-    //validation and send response datas
-    if (isLogin._isLogin) {
-      status = response.CODE_ERROR;
-      massage = "your account was active";
-      data = false;
-    } else {
-      if (userdatas !== null) {
-        status = response.CODE_SUCCESS;
-        massage = "your account was log out";
-        data = false;
+    const userdatas = await userModel.findByIdAndUpdate(
+      condition.filter,
+      condition.update,
+      {
+        useFindAndModify: false,
       }
+    );
+    //validation and send response datas
+    if (userdatas !== null) {
+      status = response.CODE_SUCCESS;
+      massage = "your account was logout";
+      data = false;
     }
     res.status(status).json(response.set(status, massage, data));
   },

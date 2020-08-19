@@ -1,11 +1,10 @@
 .env
 .vscode
 .idea
-config/config.json
 npm-debug.log
 .DS_Store
 todo
-.eslintrc.js
 logger/*
 # Directory
 node_modules
+package-lock.json

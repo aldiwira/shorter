@@ -36,9 +36,9 @@ module.exports = {
         }
       });
     } else {
-      code = response.CODE_ERROR;
+      code = response.CODE_NOTFOUND;
       massage = "Invalid Signature";
-      data = err;
+      data = "Invalid Signature";
       res.status(code).json(response.set(code, massage, data));
     }
   },

@@ -3,26 +3,12 @@ const { validationResult } = require("express-validator");
 const moment = require("moment");
 
 const userModel = require("../models/userModel");
-const checker = require("../helper/checker");
 const response = require("../helper/response");
 const JWT = require("../helper/jwt");
 
 let status;
 let massage;
 let data;
-
-//for find and update userdatas
-const findandupdate = async (condition) => {
-  return await userModel.findOneAndUpdate(condition.filter, condition.update, {
-    useFindAndModify: false,
-    new: true,
-  });
-};
-
-//generate json token
-const generateJWT = async (id) => {
-  return await JWT.JWTSign(id);
-};
 
 module.exports = {
   registerProcess: async (req, res, next) => {
@@ -41,7 +27,7 @@ module.exports = {
         massage = "Success create users";
         data = {
           account: result._id,
-          token: await generateJWT(result._id),
+          token: await JWT.JWTSign(result._id, result._isAdmin),
         };
         res.status(status).json(response.set(status, massage, data));
       });
@@ -88,14 +74,14 @@ module.exports = {
           massage = "Login was successful";
           data = {
             account: userdatas._id,
-            token: await generateJWT(userdatas._id),
+            token: await JWT.JWTSign(userdatas._id, userdatas._isAdmin),
           };
           res.status(status).json(response.set(status, massage, data));
         } else {
-          throw new Error("400:Your Password is wrong");
+          throw new Error("Your Password is wrong");
         }
       } else {
-        throw new Error("400:Check your username and password");
+        throw new Error("Check your username and password");
       }
     } catch (error) {
       next(error);

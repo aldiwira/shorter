@@ -5,11 +5,12 @@ let massage;
 let data;
 
 module.exports = {
-  JWTSign: (id) => {
+  JWTSign: (id, isAdmin) => {
     return new Promise((resolve, reject) => {
       jwt.sign(
         {
           _id: id,
+          _isAdmin: isAdmin,
           createdAt: Date.now(),
         },
         "key-api",
@@ -26,20 +27,14 @@ module.exports = {
     if (token) {
       jwt.verify(token, "key-api", function (err, decode) {
         if (err) {
-          code = response.CODE_ERROR;
-          massage = err.message;
-          data = err.name;
-          res.status(code).json(response.set(code, massage, data));
+          throw new Error(err.message);
         } else {
           req.payload = decode;
           next();
         }
       });
     } else {
-      code = response.CODE_NOTFOUND;
-      massage = "Invalid Signature";
-      data = "Invalid Signature";
-      res.status(code).json(response.set(code, massage, data));
+      throw new Error("Invalid Signature Token Key");
     }
   },
 };

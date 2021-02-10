@@ -33,16 +33,13 @@ app.use("/", redirectRoute);
 //db checking
 const db = mongoose.connection;
 db.on("error", (error) => {
-  throw new Error(`400:${error.stack}`);
+  throw new Error(error.stack);
 });
 db.once("open", () => console.log("Connected"));
 
 app.use((error, req, res, next) => {
-  let message = error.message.includes(":")
-    ? error.message.split(":")
-    : error.message;
-  let status = error.status ? error.status : message[0];
-  res.status(status).json(resFormat.set(status, message[1], false));
+  let status = error.status ? error.status : 400;
+  res.status(status).json(resFormat.set(status, error.message, false));
 });
 
 //service handler

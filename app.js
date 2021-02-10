@@ -10,6 +10,7 @@ const shorterRoute = require("./router/shorterRouter");
 const redirectRoute = require("./router/redirectRouter");
 const mainRoute = require("./router/mainRoute");
 const resFormat = require("./helper/response");
+const { parse } = require("dotenv");
 
 app.use(helmet());
 app.use(cors());
@@ -32,13 +33,16 @@ app.use("/", redirectRoute);
 //db checking
 const db = mongoose.connection;
 db.on("error", (error) => {
-  throw new Error(error.stack);
+  throw new Error(`400:${error.stack}`);
 });
 db.once("open", () => console.log("Connected"));
 
 app.use((error, req, res, next) => {
-  let status = error.status ? error.status : 500;
-  res.status(status).json(resFormat.set(status, error.message, false));
+  let message = error.message.includes(":")
+    ? error.message.split(":")
+    : error.message;
+  let status = error.status ? error.status : message[0];
+  res.status(status).json(resFormat.set(status, message[1], false));
 });
 
 //service handler

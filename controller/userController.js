@@ -1,9 +1,12 @@
+const bcryp = require("bcrypt");
+const { validationResult } = require("express-validator");
+const moment = require("moment");
+
 const userModel = require("../models/userModel");
 const checker = require("../helper/checker");
-const bcryp = require("bcrypt");
 const response = require("../helper/response");
 const JWT = require("../helper/jwt");
-const { validationResult } = require("express-validator");
+
 let status;
 let massage;
 let data;
@@ -22,7 +25,7 @@ const generateJWT = async (id) => {
 };
 
 module.exports = {
-  registerProcess: async (req, res) => {
+  registerProcess: async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
@@ -32,25 +35,21 @@ module.exports = {
       password: bcryp.hashSync(req.body.password, response.SALT_CODE),
       email: req.body.email,
     };
-    await userModel
-      .create(datas)
-      .then(async (result) => {
-        const jwt = await generateJWT(result._id);
+    try {
+      await userModel.create(datas).then(async (result) => {
         status = response.CODE_CREATED;
         massage = "Success create users";
         data = {
-          account: result,
-          token: jwt,
+          account: result._id,
+          token: await generateJWT(result._id),
         };
-      })
-      .catch((err) => {
-        status = response.CODE_ERROR;
-        massage = "Failed create users";
-        data = err;
+        res.status(status).json(response.set(status, massage, data));
       });
-    res.status(status).json(response.set(status, massage, data));
+    } catch (error) {
+      next(error);
+    }
   },
-  loginProcess: async (req, res) => {
+  loginProcess: async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
@@ -58,69 +57,49 @@ module.exports = {
     let datas = {
       email: req.body.email,
       password: req.body.password,
-      username: req.body.username,
     };
 
     let condition = {
       filter: {
-        $or: [
-          {
-            email: datas.email,
-          },
-          {
-            username: datas.username,
-          },
-        ],
+        email: datas.email,
       },
       update: {
-        _isLogin: true,
+        updatedAt: moment().utc().format(),
       },
     };
 
-    //check account status was login or no
-    const isLogin = await checker.datas(userModel, condition.filter);
-    //fetch user datas
-    const userdatas = await userModel.findOneAndUpdate(
-      condition.filter,
-      condition.update,
-      {
-        useFindAndModify: false,
-      }
-    );
-
-    if (userdatas) {
-      //becrypt password datas
-      const passwordCheck = bcryp.compareSync(
-        datas.password,
-        userdatas.password
+    // fetch user datas
+    try {
+      const userdatas = await userModel.findOneAndUpdate(
+        condition.filter,
+        condition.update,
+        {
+          useFindAndModify: false,
+        }
       );
-      if (passwordCheck) {
-        //generate web token
-        if (!isLogin._isLogin) {
-          const jwt = await generateJWT(userdatas._id);
+
+      if (userdatas !== null) {
+        const passwordCheck = bcryp.compareSync(
+          datas.password,
+          userdatas.password
+        );
+        if (passwordCheck) {
           status = response.CODE_SUCCESS;
           massage = "Login was successful";
           data = {
-            account: userdatas,
-            token: jwt,
+            account: userdatas._id,
+            token: await generateJWT(userdatas._id),
           };
+          res.status(status).json(response.set(status, massage, data));
         } else {
-          status = response.CODE_ERROR;
-          massage = "Your account was active";
-          data = false;
+          throw new Error("400:Your Password is wrong");
         }
       } else {
-        status = response.CODE_ERROR;
-        massage = "check your username or email and password";
-        data = false;
+        throw new Error("400:Check your username and password");
       }
-    } else {
-      status = response.CODE_ERROR;
-      massage = "check your username or email and password";
-      data = false;
+    } catch (error) {
+      next(error);
     }
-
-    res.status(status).json(response.set(status, massage, data));
   },
   logoutProcess: async (req, res) => {
     //fetch request body
@@ -130,7 +109,7 @@ module.exports = {
         _id: ids,
       },
       update: {
-        _isLogin: false,
+        updatedAt: moment().utc().format(),
       },
     };
 

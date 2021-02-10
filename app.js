@@ -10,6 +10,7 @@ const shorterRoute = require("./router/shorterRouter");
 const redirectRoute = require("./router/redirectRouter");
 const mainRoute = require("./router/mainRoute");
 const resFormat = require("./helper/response");
+const packagej = require("./package.json");
 const { parse } = require("dotenv");
 
 app.use(helmet());
@@ -19,8 +20,8 @@ app.use(morgan("dev"));
 //tester
 app.get("/", (req, res) => {
   res.status(200).json({
-    name: "Shorter Link",
-    ver: "2.0.0",
+    name: packagej.name,
+    ver: packagej.version,
   });
 });
 

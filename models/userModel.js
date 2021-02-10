@@ -1,5 +1,5 @@
 const Mongoose = require("mongoose");
-const users = Mongoose.Schema(
+const users = new Mongoose.Schema(
   {
     email: {
       type: String,
@@ -17,6 +17,10 @@ const users = Mongoose.Schema(
       required: true,
     },
     _isLogin: {
+      type: Boolean,
+      default: false,
+    },
+    _isAdmin: {
       type: Boolean,
       default: false,
     },

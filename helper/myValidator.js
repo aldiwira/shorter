@@ -20,7 +20,7 @@ const checkDatas = async (model, value, arg) => {
 module.exports = {
   checkRegister: [
     check("username")
-      .isLength({ min: 5 })
+      .isLength({ min: 3 })
       .withMessage("wrong username length")
       .custom((value) => {
         return checkDatas(
@@ -44,18 +44,11 @@ module.exports = {
       }),
   ],
   checkLogin: [
-    oneOf([
-      check("username")
-        .exists()
-        .withMessage("username is required")
-        .isLength({ min: 5 })
-        .withMessage("wrong username length"),
-      check("email")
-        .exists()
-        .withMessage("email is required")
-        .isEmail()
-        .withMessage("Wrong email format"),
-    ]),
+    check("email")
+      .exists()
+      .withMessage("email is required")
+      .isEmail()
+      .withMessage("Wrong email format"),
     check("password")
       .isLength({ min: 7 })
       .withMessage("password must be at least 7 character"),

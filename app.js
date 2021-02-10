@@ -2,17 +2,18 @@ const express = require("express");
 const app = express();
 const helmet = require("helmet");
 const cors = require("cors");
-const bodyparse = require("body-parser");
-const mongoose = require("./config/db.js");
 const dotenv = require("dotenv").config();
+const morgan = require("morgan");
+
+const mongoose = require("./config/db.js");
 const shorterRoute = require("./router/shorterRouter");
 const redirectRoute = require("./router/redirectRouter");
 const mainRoute = require("./router/mainRoute");
-const morgan = require("morgan");
+const resFormat = require("./helper/response");
+const { parse } = require("dotenv");
 
 app.use(helmet());
 app.use(cors());
-app.use(bodyparse.json());
 app.use(express.json());
 app.use(morgan("dev"));
 //tester
@@ -31,8 +32,15 @@ app.use("/", redirectRoute);
 
 //db checking
 const db = mongoose.connection;
-db.on("error", (error) => console.log(error));
+db.on("error", (error) => {
+  throw new Error(error.stack);
+});
 db.once("open", () => console.log("Connected"));
+
+app.use((error, req, res, next) => {
+  let status = error.status ? error.status : 400;
+  res.status(status).json(resFormat.set(status, error.message, false));
+});
 
 //service handler
 app.listen(process.env.PORT, () => {

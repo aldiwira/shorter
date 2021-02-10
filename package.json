@@ -20,12 +20,12 @@
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.1",
     "mongoose": "^5.9.21",
+    "morgan": "^1.10.0",
     "swagger-jsdoc": "^6.0.2",
     "swagger-ui-express": "^4.1.6"
   },
   "devDependencies": {
     "eslint": "^7.4.0",
-    "morgan": "^1.10.0",
     "nodemon": "^2.0.4"
   }
 }

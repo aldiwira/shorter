@@ -4,32 +4,18 @@ const helmet = require("helmet");
 const cors = require("cors");
 const dotenv = require("dotenv").config();
 const morgan = require("morgan");
+require("dotenv");
 
 const mongoose = require("./config/db.js");
-const shorterRoute = require("./router/shorterRouter");
-const redirectRoute = require("./router/redirectRouter");
-const mainRoute = require("./router/mainRoute");
 const resFormat = require("./helper/response");
-const packagej = require("./package.json");
-const { parse } = require("dotenv");
 
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
-//tester
-app.get("/", (req, res) => {
-  res.status(200).json({
-    name: packagej.name,
-    ver: packagej.version,
-  });
-});
 
-//for handle shorter process
-//user sides
-app.use("/", mainRoute);
-app.use("/shorter", shorterRoute);
-app.use("/", redirectRoute);
+// routes init
+require("./config/routes")(app);
 
 //db checking
 const db = mongoose.connection;
@@ -44,7 +30,7 @@ app.use((error, req, res, next) => {
 });
 
 //service handler
-app.listen(process.env.PORT, () => {
+app.listen(process.env.PORT || 3000, () => {
   console.log(
     "Magic at http://" + process.env.HOST_RUN + ":" + process.env.PORT
   );
